@@ -45,9 +45,10 @@ test("selection code prevents page activation and cleans up its listeners", asyn
   assert.match(source, /\.catch\(\(\) => \{\}\)/);
 });
 
-test("popup stores token in extension storage and sends bearer authentication", async () => {
+test("popup uses session-scoped token storage and sends bearer authentication", async () => {
   const source = await readFile(new URL("../chrome-mvp/popup.js", import.meta.url), "utf8");
-  assert.match(source, /chrome\.storage\.local/);
+  assert.match(source, /saveSessionToken/);
+  assert.match(source, /clearSessionToken/);
   assert.match(source, /Authorization: `Bearer \$\{token\}`/);
   assert.match(source, /targetSelector/);
 });
@@ -67,6 +68,60 @@ test("the service worker is the durable receiver for selection events", async ()
   assert.match(source, /latestSelection/);
   assert.match(source, /latestSelectionError/);
   assert.match(source, /selectionCancelled/);
+});
+
+test("popup supports contextual all-component discovery without starting batch audits", async () => {
+  const [html, popup, background, discovery] = await Promise.all([
+    readFile(new URL("../chrome-mvp/popup.html", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/popup.js", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/background.js", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/discover-components.js", import.meta.url), "utf8")
+  ]);
+  assert.match(html, /value="all">All supported components/);
+  assert.match(html, /id="discovery-list"/);
+  assert.match(popup, /discover-components\.js/);
+  assert.match(popup, /latestDiscovery/);
+  assert.match(background, /createSelectionContext\(message\.discovery, sender\.tab\)/);
+  assert.match(discovery, /strategies\.discover\(document\)/);
+  assert.match(discovery, /uniqueElementSelector/);
+});
+
+test("discovered components are highlighted and can be cleared", async () => {
+  const [html, popup, discovery, cleanup] = await Promise.all([
+    readFile(new URL("../chrome-mvp/popup.html", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/popup.js", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/discover-components.js", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/clear-discovery-highlights.js", import.meta.url), "utf8")
+  ]);
+  assert.match(html, /id="clear-discovery"/);
+  assert.match(popup, /clear-discovery-highlights\.js/);
+  assert.match(discovery, /aria-ease-discovered-component/);
+  assert.match(discovery, /outline: 3px solid #2563eb/);
+  assert.match(discovery, /badge\.textContent = candidate\.label/);
+  assert.match(cleanup, /classList\.remove/);
+  assert.match(cleanup, /highlight-style/);
+});
+
+test("all-component discovery exposes sequential batch execution", async () => {
+  const [html, popup] = await Promise.all([
+    readFile(new URL("../chrome-mvp/popup.html", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/popup.js", import.meta.url), "utf8")
+  ]);
+  assert.match(html, /id="run-all"/);
+  assert.match(popup, /async function runAllAudits/);
+  assert.match(popup, /for \(const \[index, target\] of discovery\.targets\.entries\(\)\)/);
+  assert.match(popup, /component: target\.component/);
+});
+
+test("popup displays the active tab URL as a read-only audit target", async () => {
+  const [html, popup] = await Promise.all([
+    readFile(new URL("../chrome-mvp/popup.html", import.meta.url), "utf8"),
+    readFile(new URL("../chrome-mvp/popup.js", import.meta.url), "utf8")
+  ]);
+  assert.match(html, /id="page-url"[^>]*readonly/);
+  assert.match(html, /Automatically taken from the active tab/);
+  assert.match(popup, /\$\("page-url"\)\.value = tabs\[0\]\.url/);
+  assert.match(popup, /async function restoreSelectionState[\s\S]*await activeTab\(\)/);
 });
 
 test("groups repeated rule findings without merging distinct targets or expectations", () => {

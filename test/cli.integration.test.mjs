@@ -5,10 +5,11 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { test, after } from "node:test";
+import { runtimePaths } from "../paths.mjs";
 
 const run = promisify(execFile);
 const cli = path.resolve(import.meta.dirname, "..", "aria-ease-component-audit.mjs");
-const root = path.resolve(import.meta.dirname, "..", "..", "exprmnts");
+const root = runtimePaths.projectRoot;
 const harnessUrl = "http://127.0.0.1:5173/test-harness?component=combobox";
 
 async function runCli(args) {

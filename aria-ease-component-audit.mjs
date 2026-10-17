@@ -3,6 +3,7 @@
 import path from "node:path";
 import process from "node:process";
 import { runAudit, strictnessValues, timeoutFields, timeoutOptions } from "./audit.mjs";
+import { runtimePaths } from "./paths.mjs";
 
 function usage(message) {
   if (message) console.error(`Error: ${message}\n`);
@@ -22,7 +23,7 @@ function usage(message) {
 }
 
 function parseArgs(argv) {
-  const options = { root: path.resolve(import.meta.dirname, "..", "exprmnts") };
+  const options = { root: runtimePaths.projectRoot };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === "--help" || argument === "-h") {

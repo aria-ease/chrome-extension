@@ -64,40 +64,10 @@
     document.removeEventListener("keydown", keydown, true);
     overlay.remove();
     delete window.ariaEaseSelector;
+    delete window.ariaEaseComponentStrategies;
     window.__ariaEaseSelectionActive = false;
   };
 
-  window.ariaEaseSelector = {
-    uniqueSelector: (element) => {
-      if (!(element instanceof Element) || element.getAttribute("role") !== "combobox") throw new Error("Select a combobox.");
-      if (element.id && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(element.id) && document.querySelectorAll(`#${element.id}`).length === 1) return `#${element.id}`;
-      const parts = [];
-      let current = element;
-      while (current && current !== document.documentElement) {
-        let part = current.localName;
-        if (current.getAttribute("role") === "combobox") part += '[role="combobox"]';
-        const siblings = current.parentElement ? [...current.parentElement.children].filter((candidate) => candidate.localName === current.localName) : [];
-        if (siblings.length > 1) part += `:nth-of-type(${siblings.indexOf(current) + 1})`;
-        parts.unshift(part);
-        const candidate = parts.join(" > ");
-        if (document.querySelectorAll(candidate).length === 1) return candidate;
-        current = current.parentElement;
-      }
-      throw new Error("Could not generate a unique selector for this combobox.");
-    },
-    selectedMetadata: (element, selector) => ({
-      selector,
-      tag: element.localName,
-      id: element.id || null,
-      role: element.getAttribute("role"),
-      accessibleNameAttributes: {
-        ariaLabel: element.getAttribute("aria-label"),
-        ariaLabelledby: element.getAttribute("aria-labelledby"),
-        title: element.getAttribute("title")
-      },
-      aria: Object.fromEntries([...element.attributes].filter((attribute) => attribute.name === "role" || attribute.name.startsWith("aria-")).map((attribute) => [attribute.name, attribute.value]))
-    })
-  };
   document.addEventListener("mousemove", move, true);
   document.addEventListener("click", click, true);
   document.addEventListener("keydown", keydown, true);

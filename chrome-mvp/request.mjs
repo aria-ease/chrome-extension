@@ -9,10 +9,10 @@ export function validateTargetUrl(value) {
   return url.href;
 }
 
-export function buildAuditRequest({ url, root, targetSelector }) {
+export function buildAuditRequest({ url, root, targetSelector, component = "combobox" }) {
   return {
     url: validateTargetUrl(url),
-    component: "combobox",
+    component,
     root,
     targetSelector
   };

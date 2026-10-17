@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import path from "node:path";
 import { createAuditService } from "../service.mjs";
+import { runtimePaths } from "../paths.mjs";
 
-const root = path.resolve(import.meta.dirname, "..", "..", "exprmnts");
+const root = runtimePaths.projectRoot;
 const harnessUrl = "http://127.0.0.1:5173/test-harness?component=combobox";
 let service;
 let baseUrl;

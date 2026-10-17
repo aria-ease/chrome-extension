@@ -5,8 +5,8 @@ import http from "node:http";
 import path from "node:path";
 import process from "node:process";
 import { runAudit } from "./audit.mjs";
+import { runtimePaths } from "./paths.mjs";
 
-const defaultApprovedRoot = path.resolve(import.meta.dirname, "..", "exprmnts");
 const localhostOrigin = /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function isApprovedRoot(candidate, approvedRoots) {
@@ -86,7 +86,6 @@ function validateRequest(body, approvedRoots) {
     if (/[\0\r\n]/.test(body.targetSelector) || /^(javascript|xpath):|^(xpath|text|id|role|nth|visible)=/i.test(body.targetSelector) || body.targetSelector.includes(">>")) {
       throw new Error("targetSelector must be a CSS selector");
     }
-    if (body.component !== "combobox") throw new Error("targetSelector is currently supported only for combobox audits");
   }
   if (typeof body.root !== "string" || body.root.length === 0) throw new Error("root must be a non-empty string");
   const root = path.resolve(body.root);
@@ -114,7 +113,7 @@ function validateRequest(body, approvedRoots) {
 
 export function createAuditService({
   port = 4317,
-  approvedRoots = [defaultApprovedRoot],
+  approvedRoots = runtimePaths.approvedRoots,
   auditRunner = runAudit,
   token = process.env.ARIA_EASE_AUTH_TOKEN?.trim() || randomBytes(32).toString("hex"),
   extensionOrigins = (process.env.ARIA_EASE_EXTENSION_ORIGINS || "").split(",").map((origin) => origin.trim()).filter(Boolean)

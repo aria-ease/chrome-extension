@@ -7,15 +7,32 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body class="light-body">
-  <h1>Aria-Ease combobox audit</h1>
-  <p class="muted">This MVP selects comboboxes only.</p>
+  <h1>Aria-Ease component audit</h1>
+  <p class="muted">Select one component or preview all automatically supported components on this page.</p>
+  <label for="page-url">Page URL</label>
+  <input id="page-url" type="url" readonly aria-describedby="page-url-help">
+  <p id="page-url-help" class="field-help">Automatically taken from the active tab.</p>
   <label for="service-url">Local service URL</label>
   <input id="service-url" type="url" autocomplete="off">
   <label for="token">Bearer token</label>
   <input id="token" type="password" autocomplete="off">
+  <button id="clear-token" type="button">Clear token</button>
   <label for="root">Approved project root</label>
-  <input id="root" type="text" autocomplete="off" placeholder="/path/to/exprmnts">
+  <input id="root" type="text" autocomplete="off" placeholder="/path/to/project">
+  <label for="audit-scope">Audit scope</label>
+  <select id="audit-scope">
+    <option value="single">Select one component</option>
+    <option value="all">All supported components</option>
+  </select>
   <button id="select">Select component</button>
+  <section id="discovery" class="hidden">
+    <h2>Discovered components</h2>
+    <p id="discovery-summary" class="muted"></p>
+    <ul id="discovery-list"></ul>
+    <p id="discovery-errors" class="error"></p>
+    <button id="run-all" type="button">Run audits</button>
+    <button id="clear-discovery" type="button">Clear highlights</button>
+  </section>
   <section id="selection" class="hidden">
     <h2>Selected component</h2>
     <pre id="metadata"></pre>
@@ -28,6 +45,7 @@
     <h2 id="result-status"></h2>
     <p id="result-summary" class="muted"></p>
     <div id="result-findings"></div>
+    <button id="export-excel" type="button" class="hidden">Download Excel report</button>
     <!-- <details>
       <summary>All checks</summary>
       <pre id="result-details"></pre>
